@@ -20,8 +20,12 @@ _HEX = re.compile(r"^[0-9a-f]{64}$")
 def sign_composite_anchor(private_key: Ed25519PrivateKey, key_id: str) -> dict:
     if not isinstance(private_key, Ed25519PrivateKey) or not isinstance(key_id, str) or not key_id.strip():
         raise ValueError("Ed25519 private key and nonempty key_id required")
-    claims = verify_audit_chain()
-    evidence = verify_doi_verification_log()
+    # One SQLite read transaction pins both heads to the same database snapshot.
+    with connect() as db:
+        db.execute("BEGIN")
+        claims = verify_audit_chain(db)
+        evidence = verify_doi_verification_log(db)
+        db.rollback()
     if not claims["valid"] or not evidence["valid"]:
         raise ValueError("Audit verification failed; refusing to sign")
     envelope = {
