@@ -13,8 +13,9 @@ def arguments():
 
 def run(storage=None, identity=None, **overrides):
     storage = storage or Mock()
-    identity = identity or Mock()
-    identity.get_caller_identity.return_value = {"Account": "123456789012"}
+    if identity is None:
+        identity = Mock()
+        identity.get_caller_identity.return_value = {"Account": "123456789012"}
     args = arguments()
     args.update(overrides)
     return run_approved_provider_validation(storage, identity,
