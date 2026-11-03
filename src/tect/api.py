@@ -1,9 +1,16 @@
 from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel, Field
+
 from .engine import assess
 from .models import Assessment, Claim
+from .storage import claim_versions, load_claim, save_claim, verify_audit_chain
 
-app = FastAPI(title="ResearchOS | TECT", version="0.1.0")
-_claims: dict[str, Claim] = {}
+app = FastAPI(title="ResearchOS | TECT", version="0.2.0")
+
+
+class ClaimRevision(BaseModel):
+    claim: Claim
+    expected_version: int = Field(ge=1)
 
 
 @app.get("/health")
@@ -13,19 +20,49 @@ def health() -> dict[str, str]:
 
 @app.post("/claims", response_model=Claim, status_code=201)
 def create_claim(claim: Claim) -> Claim:
-    if claim.id in _claims:
+    try:
+        save_claim(claim, expected_version=0)
+    except ValueError:
         raise HTTPException(status_code=409, detail="Claim already exists")
-    _claims[claim.id] = claim
     return claim
 
 
-@app.get("/claims/{claim_id}", response_model=Claim)
-def get_claim(claim_id: str) -> Claim:
-    if claim_id not in _claims:
+@app.put("/claims/{claim_id}", response_model=Claim)
+def revise_claim(claim_id: str, revision: ClaimRevision) -> Claim:
+    if revision.claim.id != claim_id:
+        raise HTTPException(status_code=422, detail="Claim ID mismatch")
+    if load_claim(claim_id) is None:
         raise HTTPException(status_code=404, detail="Claim not found")
-    return _claims[claim_id]
+    try:
+        save_claim(revision.claim, expected_version=revision.expected_version)
+    except ValueError:
+        raise HTTPException(status_code=409, detail="Version conflict")
+    return revision.claim
+
+
+@app.get("/claims/{claim_id}", response_model=Claim)
+def get_claim(claim_id: str, version: int | None = None) -> Claim:
+    if version is not None and version < 1:
+        raise HTTPException(status_code=422, detail="Version must be positive")
+    claim = load_claim(claim_id, version)
+    if claim is None:
+        raise HTTPException(status_code=404, detail="Claim not found")
+    return claim
+
+
+@app.get("/claims/{claim_id}/versions", response_model=list[int])
+def get_versions(claim_id: str) -> list[int]:
+    versions = claim_versions(claim_id)
+    if not versions:
+        raise HTTPException(status_code=404, detail="Claim not found")
+    return versions
 
 
 @app.get("/claims/{claim_id}/assessment", response_model=Assessment)
-def get_assessment(claim_id: str) -> Assessment:
-    return assess(get_claim(claim_id))
+def get_assessment(claim_id: str, version: int | None = None) -> Assessment:
+    return assess(get_claim(claim_id, version))
+
+
+@app.get("/audit/verify")
+def audit_verify() -> dict:
+    return verify_audit_chain()
