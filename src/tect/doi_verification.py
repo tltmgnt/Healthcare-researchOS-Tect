@@ -10,7 +10,7 @@ from urllib.request import Request, urlopen
 
 from .storage import load_claim
 
-_DOI = re.compile(r"^10\\.\\d{4,9}/[A-Za-z0-9._;()/:+-]+$", re.ASCII)
+_DOI = re.compile(r"^10\.\d{4,9}/[A-Za-z0-9._;()/:+-]+$", re.ASCII)
 
 
 def normalize_doi(locator: str) -> str | None:
