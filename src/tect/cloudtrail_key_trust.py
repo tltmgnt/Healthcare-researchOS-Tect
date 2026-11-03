@@ -12,8 +12,8 @@ from cryptography.hazmat.primitives.asymmetric import rsa
 
 SCHEMA = "tect.cloudtrail-key-trust.v1"
 HEX = re.compile(r"^[0-9a-f]{64}$")
-REGION = re.compile(r"^[a-z]{2}(?:-gov)?-[a-z]+-\\d+$")
-ACCOUNT = re.compile(r"^\\d{12}$")
+REGION = re.compile(r"^[a-z]{2}(?:-gov)?-[a-z]+-[0-9]+$")
+ACCOUNT = re.compile(r"^[0-9]{12}$")
 
 
 def _time(value):
