@@ -4,6 +4,8 @@ Early-stage research assurance prototype. Deterministic assessments of evidence 
 
 ## Quick start
 
+Set `TECT_API_KEYS_JSON` before calling protected API routes; see [security setup](docs/PHASE2-SECURITY.md).
+
 ```bash
 python -m pip install -e ".[dev]"
 export TECT_DB_PATH=tect.sqlite3
@@ -34,6 +36,6 @@ curl http://localhost:8000/audit/verify
 ## Security and scientific limitations
 
 **Not production-ready. Never submit PHI or use for clinical decisions.**
-No authentication, authorization, encryption at rest, or access controls. SQLite is local and single-instance; configure a protected database path and backups. The audit chain is *tamper-evident only relative to a trusted external anchor*: an administrator with write access could rewrite all records and hashes. Evidence `verified` is caller-supplied and **does not** establish provenance or scientific reliability. No source retrieval, independent provenance verification, formal verification, adversarial evaluation, or clinical validation is implemented.
+Phase 2 adds static bearer-token authentication and role-based endpoint authorization; encryption at rest, per-claim access controls, and production identity management remain absent. SQLite is local and single-instance; configure a protected database path and backups. The audit chain is *tamper-evident only relative to a trusted external anchor*: an administrator with write access could rewrite all records and hashes. Evidence `verified` is caller-supplied and **does not** establish provenance or scientific reliability. No source retrieval, independent provenance verification, formal verification, adversarial evaluation, or clinical validation is implemented.
 
-Next: externally anchor audit heads, add access controls, provenance verification, schema migrations, and adversarial test suites.
+See [Phase 2 security guide](docs/PHASE2-SECURITY.md) for configuration and role permissions. Next: externally anchor audit heads, implement per-claim access controls and production identity management, provenance verification, schema migrations, and adversarial test suites.

@@ -1,4 +1,6 @@
 import sqlite3
+import hashlib
+import json
 
 import pytest
 from fastapi.testclient import TestClient
@@ -36,8 +38,12 @@ def test_tamper_detected():
     assert verify_audit_chain()["valid"] is False
 
 
-def test_api_revision_and_audit():
+def test_api_revision_and_audit(monkeypatch):
+    token = "synthetic-test-admin-token"
+    digest = hashlib.sha256(token.encode()).hexdigest()
+    monkeypatch.setenv("TECT_API_KEYS_JSON", json.dumps({digest: "admin"}))
     client = TestClient(app)
+    client.headers.update({"Authorization": f"Bearer {token}"})
     assert client.post("/claims", json={"id": "x", "text": "First"}).status_code == 201
     assert client.post("/claims", json={"id": "x", "text": "Duplicate"}).status_code == 409
     response = client.put("/claims/x", json={"claim": {"id": "x", "text": "Second"}, "expected_version": 1})
