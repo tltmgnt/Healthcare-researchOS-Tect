@@ -7,7 +7,7 @@ import hashlib
 import json
 import os
 import sqlite3
-from contextlib import contextmanager
+from contextlib import contextmanager, nullcontext
 from datetime import datetime, timezone
 
 from .models import Claim
@@ -82,8 +82,8 @@ def claim_versions(claim_id: str) -> list[int]:
         return [row[0] for row in db.execute("SELECT version FROM claims WHERE id=? ORDER BY version", (claim_id,))]
 
 
-def verify_audit_chain() -> dict:
-    with connect() as db:
+def verify_audit_chain(db=None) -> dict:
+    with (connect() if db is None else nullcontext(db)) as db:
         rows = db.execute("SELECT seq, event_type, claim_id, version, timestamp, payload_sha256, previous_hash, event_hash FROM events ORDER BY seq").fetchall()
         previous = "0" * 64
         for index, (seq, kind, claim_id, version, timestamp, payload_hash, prev_hash, event_hash) in enumerate(rows, 1):
