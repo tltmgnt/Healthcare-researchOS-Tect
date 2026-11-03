@@ -5,6 +5,7 @@ The full current chain is validated before accepting a historical checkpoint.
 import hashlib
 import hmac
 import json
+from contextlib import nullcontext
 from cryptography.exceptions import InvalidSignature
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
 
@@ -13,12 +14,12 @@ from .ed25519_checkpoints import SCHEMA as SIGNED_SCHEMA
 from .storage import canonical, connect, sha256
 
 
-def verify_audit_prefix(events_checked: int, expected_head_hash: str) -> dict:
+def verify_audit_prefix(events_checked: int, expected_head_hash: str, db=None) -> dict:
     if type(events_checked) is not int or events_checked < 0:
         return {"valid": False, "reason": "invalid_sequence"}
     if not isinstance(expected_head_hash, str) or len(expected_head_hash) != 64:
         return {"valid": False, "reason": "invalid_head"}
-    with connect() as db:
+    with (connect() if db is None else nullcontext(db)) as db:
         rows = db.execute(
             "SELECT seq, event_type, claim_id, version, timestamp, payload_sha256, previous_hash, event_hash "
             "FROM events ORDER BY seq"
