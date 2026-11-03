@@ -7,7 +7,7 @@ name = "researchos-tect"
 version = "0.1.0"
 description = "Evidence-based assurance for AI-generated research claims"
 requires-python = ">=3.10"
-dependencies = ["fastapi>=0.110", "pydantic>=2.0", "uvicorn>=0.27"]
+dependencies = ["fastapi>=0.110", "pydantic>=2.0", "uvicorn>=0.27", "cryptography>=42"]
 
 [project.optional-dependencies]
 dev = ["pytest>=8", "httpx>=0.27"]
