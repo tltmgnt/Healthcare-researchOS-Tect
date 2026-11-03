@@ -3,6 +3,7 @@
 Records describe what the resolver returned, not whether evidence is true.
 """
 from datetime import datetime, timezone
+from contextlib import nullcontext
 
 from .doi_verification import verify_evidence_doi
 from .storage import canonical, connect, sha256
@@ -47,9 +48,9 @@ def record_doi_verification(claim_id: str, version: int, evidence_id: str, *, re
         return {"event_hash": digest, **event, "result": result}
 
 
-def verify_doi_verification_log() -> dict:
+def verify_doi_verification_log(db=None) -> dict:
     """Validate contiguous sequences, hash links and referenced claim payloads."""
-    with connect() as db:
+    with (connect() if db is None else nullcontext(db)) as db:
         _init(db)
         rows = db.execute("""SELECT seq, claim_id, version, evidence_id, observed_at, method,
             result_json, claim_payload_sha256, previous_hash, event_hash
