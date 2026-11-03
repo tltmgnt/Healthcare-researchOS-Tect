@@ -3,6 +3,7 @@
 Composite anchors are new artifacts; legacy signed checkpoints remain unchanged.
 """
 import hmac
+from contextlib import nullcontext
 import re
 from datetime import datetime, timezone
 
@@ -38,9 +39,9 @@ def sign_composite_anchor(private_key: Ed25519PrivateKey, key_id: str) -> dict:
     return envelope
 
 
-def _verification_prefix(count: int, head: str) -> dict:
+def _verification_prefix(count: int, head: str, db=None) -> dict:
     """Validate the complete local verification history, then match its prefix."""
-    with connect() as db:
+    with (connect() if db is None else nullcontext(db)) as db:
         _init(db)
         rows = db.execute("""SELECT seq, claim_id, version, evidence_id, observed_at, method,
             result_json, claim_payload_sha256, previous_hash, event_hash
@@ -89,8 +90,14 @@ def verify_composite_anchor(envelope: dict, trusted_public_keys: dict[str, Ed255
         return {"valid": False, "reason": "signature_mismatch"}
     from .historical_audit import verify_audit_prefix
     claims = envelope["claims"]
-    result = verify_audit_prefix(claims["events_checked"], claims["head_hash"])
-    if not result["valid"]:
-        return {"valid": False, "reason": "claims_prefix_invalid", "detail": result}
-    doi = envelope["doi_verifications"]
-    return _verification_prefix(doi["events_checked"], doi["head_hash"])
+    # Pin both historical prefix checks to one SQLite read snapshot.
+    with connect() as db:
+        db.execute("BEGIN")
+        result = verify_audit_prefix(claims["events_checked"], claims["head_hash"], db=db)
+        if not result["valid"]:
+            db.rollback()
+            return {"valid": False, "reason": "claims_prefix_invalid", "detail": result}
+        doi = envelope["doi_verifications"]
+        verification = _verification_prefix(doi["events_checked"], doi["head_hash"], db=db)
+        db.rollback()
+        return verification
