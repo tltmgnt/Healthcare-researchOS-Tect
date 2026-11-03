@@ -31,6 +31,10 @@ def test_missing_version(recorded):
 
 
 def test_missing_provenance(recorded):
+    # Phase 10 automatically creates provenance; remove it to test detection.
+    with connect() as db:
+        db.execute("DELETE FROM evidence_provenance WHERE claim_id=? AND version=?", (recorded.id, 1))
+        db.commit()
     assert verify_provenance(recorded.id, 1)["reason"] == "missing_provenance_or_claim"
 
 

@@ -31,7 +31,18 @@ def verify_audit_prefix(events_checked: int, expected_head_hash: str) -> dict:
             payload_row = db.execute(
                 "SELECT payload FROM claims WHERE id=? AND version=?", (claim_id, version)
             ).fetchone()
-            if (seq != index or prev_hash != previous or sha256(canonical(event)) != event_hash
+            provenance_valid = True
+            if kind == "claim.saved.provenance" and payload_row is not None:
+                from .provenance import _snapshot
+                manifest_row = db.execute(
+                    "SELECT manifest, manifest_sha256 FROM evidence_provenance WHERE claim_id=? AND version=?",
+                    (claim_id, version),
+                ).fetchone()
+                expected_manifest = canonical(_snapshot(claim_id, version, payload_row[0]))
+                provenance_valid = (manifest_row is not None
+                                    and manifest_row[0] == expected_manifest
+                                    and manifest_row[1] == sha256(expected_manifest))
+            if (seq != index or not provenance_valid or prev_hash != previous or sha256(canonical(event)) != event_hash
                     or payload_row is None or sha256(payload_row[0]) != payload_hash):
                 return {"valid": False, "reason": "audit_chain_invalid", "failed_sequence": index}
             previous = event_hash

@@ -49,10 +49,15 @@ def save_claim(claim: Claim, *, expected_version: int | None = None) -> int:
             raise ValueError("Version conflict")
         version = current + 1
         db.execute("INSERT INTO claims VALUES (?, ?, ?)", (claim.id, version, payload))
+        from .provenance import _snapshot
+        db.execute("CREATE TABLE IF NOT EXISTS evidence_provenance (claim_id TEXT NOT NULL, version INTEGER NOT NULL, manifest TEXT NOT NULL, manifest_sha256 TEXT NOT NULL, created_at TEXT NOT NULL, PRIMARY KEY(claim_id, version))")
+        manifest = canonical(_snapshot(claim.id, version, payload))
+        db.execute("INSERT INTO evidence_provenance VALUES (?, ?, ?, ?, ?)",
+                   (claim.id, version, manifest, sha256(manifest), datetime.now(timezone.utc).isoformat()))
         previous = db.execute("SELECT event_hash FROM events ORDER BY seq DESC LIMIT 1").fetchone()
         prev_hash = previous[0] if previous else "0" * 64
         timestamp = datetime.now(timezone.utc).isoformat()
-        event = dict(event_type="claim.saved", claim_id=claim.id, version=version,
+        event = dict(event_type="claim.saved.provenance", claim_id=claim.id, version=version,
                      timestamp=timestamp, payload_sha256=sha256(payload), previous_hash=prev_hash)
         event_hash = sha256(canonical(event))
         db.execute(
@@ -81,12 +86,24 @@ def verify_audit_chain() -> dict:
     with connect() as db:
         rows = db.execute("SELECT seq, event_type, claim_id, version, timestamp, payload_sha256, previous_hash, event_hash FROM events ORDER BY seq").fetchall()
         previous = "0" * 64
-        for seq, kind, claim_id, version, timestamp, payload_hash, prev_hash, event_hash in rows:
+        for index, (seq, kind, claim_id, version, timestamp, payload_hash, prev_hash, event_hash) in enumerate(rows, 1):
             event = dict(event_type=kind, claim_id=claim_id, version=version, timestamp=timestamp,
                          payload_sha256=payload_hash, previous_hash=prev_hash)
             payload_row = db.execute("SELECT payload FROM claims WHERE id=? AND version=?", (claim_id, version)).fetchone()
-            if (prev_hash != previous or sha256(canonical(event)) != event_hash
+            provenance_valid = True
+            if kind == "claim.saved.provenance" and payload_row is not None:
+                from .provenance import _snapshot
+                manifest_row = db.execute(
+                    "SELECT manifest, manifest_sha256 FROM evidence_provenance WHERE claim_id=? AND version=?",
+                    (claim_id, version),
+                ).fetchone()
+                expected_manifest = canonical(_snapshot(claim_id, version, payload_row[0]))
+                provenance_valid = (manifest_row is not None
+                                    and manifest_row[0] == expected_manifest
+                                    and manifest_row[1] == sha256(expected_manifest))
+            if (seq != index or not provenance_valid
+                    or prev_hash != previous or sha256(canonical(event)) != event_hash
                     or payload_row is None or sha256(payload_row[0]) != payload_hash):
-                return {"valid": False, "events_checked": seq - 1, "failed_sequence": seq}
+                return {"valid": False, "events_checked": index - 1, "failed_sequence": index}
             previous = event_hash
         return {"valid": True, "events_checked": len(rows), "head_hash": previous}
