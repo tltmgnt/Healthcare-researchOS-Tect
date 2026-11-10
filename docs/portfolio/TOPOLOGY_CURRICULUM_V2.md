@@ -1,6 +1,6 @@
 # Topology compatibility and curriculum v2 — Healthcare-researchOS-Tect
 
-Version 2 adapts the explicit-molecular-graph teaching pattern to this repository's actual role. This is documentation and a learning/decision framework; it introduces no mathematical engine, runtime dependency or operational permission.
+The verified edition of version 2 adapts the explicit-molecular-graph teaching pattern to this repository's actual role. This edition adds executable learning checks and reviewed answer keys. It does not introduce a new topology engine or grant operational permission.
 
 ## Repository decision
 
@@ -40,46 +40,55 @@ Prerequisites: basic programming, sets, functions and graph vocabulary. Work in 
 | 5. Comparison | Justify mathematical necessity and cost. | Complete the six-criterion card for the existing approach and one proposed alternative; record unknowns honestly. | Evidence-backed recommendation with baseline and explicit veto conditions. |
 | 6. Reproduction | Communicate the bounded result. | Reproduce the capstone using existing offline fixtures and record software version, inputs, outputs and limitations. | Reviewable notebook or report distinguishing computation, replay, independent evaluation and authorization. |
 
-## Source-linked reading laboratory
+## Worked reasoning and source explanation
 
-The table is a guided selection of source lines, not an assertion that the whole repository is covered. Line numbers refer to the inspected source blob `bc4d9d974d6f1ac3d5fbbf5081f1b1caf4aee220` in [src/tect/models.py](../../src/tect/models.py). Recheck anchors after source changes.
+RegistryFloorStore provisions a new persistent SQLite file at sequence 3. A compare-and-advance from 3 to 5 succeeds; another writer still expecting 3 is rejected and cannot raise the floor to 6. Reopening the file still reads 5, while a request to decrease to 4 is invalid. The lab extracts the original storage-class AST so it can test CAS without importing signature-provider integration; it does not test signed releases or establish independent key custody.
 
-| Line | Statement | Learning check |
+Read the [inspected source](https://github.com/tltmgnt/Healthcare-researchOS-Tect/blob/079bc6c65f5cfc9ba05d8772e32fbc0e15d58f99/src/tect/durable_registry_floor.py) alongside the [executable answer key](../../curriculum/lab.py). The source link is pinned to the inspected revision; the lab and any explicitly described fix are in this change.
+
+## Run the worked laboratory
+
+From the repository root, with Python 3.12 (the recorded local version is 3.12.14):
+
+```sh
+python curriculum/lab.py --verify
+```
+
+The lab checks **7 explicit expectations** against selected original AST definitions without importing provider integration. It prints a JSON case report and exits nonzero on a wrong result. `--verify` additionally compares the entire case report with [expected.json](../../curriculum/expected.json). Read the input and predict each result before opening the answer key. No API account, credentials, model download, trading action or equipment connection is needed.
+
+| Checkpoint | Expected answer |
+| --- | --- |
+| provisioned floor | `3` |
+| matching writer advances | `true` |
+| stale writer rejected | `false` |
+| reopening preserves floor | `5` |
+| rollback rejected | `"ValueError"` |
+| bootstrap refuses existing file | `"FileExistsError"` |
+| in-memory reset forbidden | `"ValueError"` |
+
+The comparisons above encode independently specified small examples and contract expectations; a passing answer key is not evidence of complete domain correctness. The original functions and their existing test suites remain the authority for broader supported contracts.
+
+## Learner tasks and assessment rubric
+
+1. Before running the lab, predict every expected answer and derive one numeric result or state transition by hand.
+2. Explain the worked reasoning above using the referenced source, including the rejected or counterexample case.
+3. Add a new valid example and a nearby failing example. Explain which assumption changes, then compare against the existing implementation. For concept/static labs, keep the result explicitly at that level.
+4. Complete the scorecard for a proposed extension and a simpler baseline. Leave measurements unknown until collected; a task that the baseline already solves is not evidence for additional topology.
+
+| Competency | Points | Full-credit evidence |
 | --- | --- | --- |
-| [1](../../src/tect/models.py#L1) | `from enum import Enum` | Identify the dependency and explain which operation needs it. |
-| [2](../../src/tect/models.py#L2) | `from pydantic import BaseModel, Field` | Identify the dependency and explain which operation needs it. |
-| [5](../../src/tect/models.py#L5) | `class Relation(str, Enum):` | State the input/output contract and trace one normal and one failing case. |
-| [6](../../src/tect/models.py#L6) | `SUPPORTS = "supports"` | Explain the statement, track its state change and predict its effect on the worked example. |
-| [7](../../src/tect/models.py#L7) | `CONTRADICTS = "contradicts"` | Explain the statement, track its state change and predict its effect on the worked example. |
-| [10](../../src/tect/models.py#L10) | `class Evidence(BaseModel):` | State the input/output contract and trace one normal and one failing case. |
-| [11](../../src/tect/models.py#L11) | `id: str = Field(min_length=1)` | Explain the statement, track its state change and predict its effect on the worked example. |
-| [12](../../src/tect/models.py#L12) | `source: str = Field(min_length=1)` | Explain the statement, track its state change and predict its effect on the worked example. |
-| [13](../../src/tect/models.py#L13) | `locator: str = Field(min_length=1, description="Stable citation, DOI, or document locator")` | Explain the statement, track its state change and predict its effect on the worked example. |
-| [14](../../src/tect/models.py#L14) | `excerpt: str = Field(min_length=1)` | Explain the statement, track its state change and predict its effect on the worked example. |
-| [15](../../src/tect/models.py#L15) | `relation: Relation` | Explain the statement, track its state change and predict its effect on the worked example. |
-| [16](../../src/tect/models.py#L16) | `verified: bool = False` | Explain the statement, track its state change and predict its effect on the worked example. |
-| [19](../../src/tect/models.py#L19) | `class Claim(BaseModel):` | State the input/output contract and trace one normal and one failing case. |
-| [20](../../src/tect/models.py#L20) | `id: str = Field(min_length=1)` | Explain the statement, track its state change and predict its effect on the worked example. |
-| [21](../../src/tect/models.py#L21) | `text: str = Field(min_length=1)` | Explain the statement, track its state change and predict its effect on the worked example. |
-| [22](../../src/tect/models.py#L22) | `evidence: list[Evidence] = Field(default_factory=list)` | Explain the statement, track its state change and predict its effect on the worked example. |
-| [25](../../src/tect/models.py#L25) | `class Assessment(BaseModel):` | State the input/output contract and trace one normal and one failing case. |
-| [26](../../src/tect/models.py#L26) | `claim_id: str` | Explain the statement, track its state change and predict its effect on the worked example. |
-| [27](../../src/tect/models.py#L27) | `status: str` | Explain the statement, track its state change and predict its effect on the worked example. |
-| [28](../../src/tect/models.py#L28) | `reasons: list[str]` | Explain the statement, track its state change and predict its effect on the worked example. |
-| [29](../../src/tect/models.py#L29) | `supporting_ids: list[str]` | Explain the statement, track its state change and predict its effect on the worked example. |
-| [30](../../src/tect/models.py#L30) | `contradicting_ids: list[str]` | Explain the statement, track its state change and predict its effect on the worked example. |
-| [31](../../src/tect/models.py#L31) | `policy_version: str = "v0.1"` | Explain the statement, track its state change and predict its effect on the worked example. |
-## Assessment and verification
+| Model and contract | 0–3 | Correct objects, relation direction, labels/units, input bounds and missingness. |
+| Derivation and trace | 0–3 | Hand derivation agrees with the specified fixture; source steps explain why. |
+| Counterexample | 0–3 | New failing/boundary case has a justified expected result; rejection is not suppressed. |
+| Scope and necessity | 0–3 | Distinguishes software behavior from validation and compares an explicit simpler alternative. |
 
-A learner must explain the model, trace the capstone, identify a counterexample and state the scope boundary. Assess these four competencies equally; a numerical score cannot compensate for an unsupported scientific or operational claim.
+Completion requires at least 10/12 and no zero in scope/necessity. A runnable answer key alone is not evidence that a learner achieved this competency. No learner-outcome study has been performed.
 
-Relevant existing checks:
+## Verification evidence and maintenance
 
-- [tests/test_anchor_export.py](../../tests/test_anchor_export.py)
-- [tests/test_approved_provider_targets.py](../../tests/test_approved_provider_targets.py)
-- [tests/test_atomic_provenance.py](../../tests/test_atomic_provenance.py)
+[VALIDATION.json](../../curriculum/VALIDATION.json) records the inspected base revision, local Python version, source/fixture hashes, lab/answer hashes, case count and exit codes. All cases were executed locally. An in-memory copy with a deliberately wrong comparison was also executed and returned nonzero, checking that the grading failure path is active. Those injected failures are harness checks, not scientific adversarial evaluations.
 
-Follow [README](../../README.md) for environment and installed-package instructions. Read scripts before execution; source-reading exercises do not authorize provider calls, model downloads, live orders, hardware actions or messages. Synthetic fixtures establish software behavior only. This documentation change does not report those exercises as already executed.
+The dedicated [curriculum workflow](../../.github/workflows/curriculum.yml) runs the same `--verify` command on relevant pull-request changes. CI status is reported by GitHub; the local record does not assert that remote CI passed. Existing full-suite and installed-package requirements still apply to runtime changes. When source or fixture semantics change, inspect the diff and rederive answers before updating expected.json. Never regenerate expected answers solely to silence a failure. Refresh the local validation record after an actual run; do not rewrite its recorded base revision as if a new run occurred.
 
 ## Interoperability and adoption gate
 

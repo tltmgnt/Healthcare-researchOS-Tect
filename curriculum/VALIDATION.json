@@ -1,0 +1,17 @@
+{
+  "case_count": 7,
+  "command": "python curriculum/lab.py --verify",
+  "exit_code": 0,
+  "expected_sha256": "c90357c504f8c63bdc07fa44e082c5ef4e1b2ccf4fc0a7806ab37acf4233d5bd",
+  "lab_sha256": "210ec9b7b40f8e99323485b49a2cbf6b9b17a054dd745dd6f78ec27fcfcea9dc",
+  "python": "3.12.14",
+  "repository": "tltmgnt/Healthcare-researchOS-Tect",
+  "schema_version": 1,
+  "scope": "Local synthetic curriculum validation on the recorded source snapshot; not complete repository CI, learning outcomes, independent scientific reproduction or deployment approval",
+  "source_and_fixture_sha256": {
+    "src/tect/durable_registry_floor.py": "ba61c78053c6ac4785fe023e6bd462a494e499e96d1f4749a2c5966480f149c2",
+    "src/tect/models.py": "9bc186570e22e9e344ae900d72d345df8d79b67f423a578c6a0a6912d5371e95"
+  },
+  "source_base_commit": "079bc6c65f5cfc9ba05d8772e32fbc0e15d58f99",
+  "wrong_expectation_exit_code": 1
+}
