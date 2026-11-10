@@ -1,0 +1,50 @@
+{
+  "case_count": 7,
+  "cases": [
+    {
+      "actual": 3,
+      "case": "provisioned floor",
+      "expected": 3,
+      "passed": true
+    },
+    {
+      "actual": true,
+      "case": "matching writer advances",
+      "expected": true,
+      "passed": true
+    },
+    {
+      "actual": false,
+      "case": "stale writer rejected",
+      "expected": false,
+      "passed": true
+    },
+    {
+      "actual": 5,
+      "case": "reopening preserves floor",
+      "expected": 5,
+      "passed": true
+    },
+    {
+      "actual": "ValueError",
+      "case": "rollback rejected",
+      "expected": "ValueError",
+      "passed": true
+    },
+    {
+      "actual": "FileExistsError",
+      "case": "bootstrap refuses existing file",
+      "expected": "FileExistsError",
+      "passed": true
+    },
+    {
+      "actual": "ValueError",
+      "case": "in-memory reset forbidden",
+      "expected": "ValueError",
+      "passed": true
+    }
+  ],
+  "schema_version": 1,
+  "scope": "Synthetic curriculum checks only",
+  "status": "PASS"
+}
